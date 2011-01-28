@@ -1,0 +1,5 @@
+
+This is a simple plugin. The output from this plugin is "hello":
+
+$ xgcc -fplugin=./hello.so -c test1.c 
+hello

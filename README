@@ -1,5 +1,8 @@
 
 GCC plugins
 
-myplugins1
+hello
+  print "hello" on the screen
+
+myplugin1
   print AST tree
