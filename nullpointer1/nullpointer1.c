@@ -12,29 +12,60 @@
 
 int plugin_is_GPL_compatible;
 
-// get child tree
-// path is a series of '0' and '1'
-static tree getchildtree(tree parent, const char pathstr[])
+// Match tree_code for the given "tree" 
+static int is_tree_code(tree t, enum tree_code tc)
 {
-    const char *p = pathstr;
-    for (p = pathstr; parent && *p; ++p) {
-        if (*p == '0' || *p == '1')
-            parent = TREE_OPERAND(parent, *p - '0');
-    }
-    return parent;
+    return (t && (TREE_CODE(t) == tc)) ? 1 : 0;
 }
 
-// check if child is a INTEGER_CST with given value
-static int ischildvalue(tree parent, const char pathstr[], int value)
+// Is the given "tree" a PARM_DECL or VAR_DECL?
+static int is_declaration(tree t)
 {
-    parent = getchildtree(parent, pathstr);
-    if (parent && TREE_CODE(parent) == INTEGER_CST) {
-        if (TREE_INT_CST_HIGH(parent) == 0 && TREE_INT_CST_LOW(parent) == value) {
-            return 1;
+    return (is_tree_code(t, PARM_DECL) || is_tree_code(t, VAR_DECL)) ? 1 : 0;
+}
+
+// Is the given "tree" a INTEGER_CST with the given value?
+static int is_value(tree t, int value)
+{
+    return (is_tree_code(t, INTEGER_CST) && TREE_INT_CST_HIGH(t) == 0 && TREE_INT_CST_LOW(t) == value) ? 1 : 0;
+}
+
+static void check_tree_node(tree t)
+{
+    if (TREE_CODE(t) == TRUTH_ORIF_EXPR) {
+        tree var = 0;
+
+        // first truth expression: p != 0
+        {
+            tree t0 = TREE_OPERAND(t,0);
+
+            if (is_tree_code(t0, NE_EXPR) && 
+                is_declaration(TREE_OPERAND(t0,0)) && 
+                is_value(TREE_OPERAND(t0,1), 0)) {
+                var = DECL_NAME(TREE_OPERAND(t0,0));
+            }
+        }
+
+        if (!var)
+            return;
+
+        // second truth expression: dereference p
+        {
+            tree t1 = TREE_OPERAND(t,1);
+            tree t10 = t1 ? TREE_OPERAND(t1,0) : 0;
+            tree t100 = t10 ? TREE_OPERAND(t10,0) : 0;
+            tree t1000 = t100 ? TREE_OPERAND(t100,0) : 0;
+
+            if (is_tree_code(t10, COMPONENT_REF) &&
+                is_tree_code(t100, INDIRECT_REF) &&
+                is_declaration(t1000) &&
+                DECL_NAME(t1000) == var) {
+                warning_at(EXPR_LOCATION(t10), 0, "possible null pointer dereference if subcondition is reachable");
+            }
         }
     }
-    return 0;
 }
+
 
 /**
  * Print given tree recursively
@@ -70,22 +101,8 @@ static void parse_tree(tree t)
         return;
     }
 
-    if (code == TRUTH_ORIF_EXPR) {
-        // first truth expression: 'p != 0'?
-        if (TREE_CODE(getchildtree(t, "0")) == NE_EXPR &&
-            TREE_CODE(getchildtree(t, "00")) == PARM_DECL &&
-            ischildvalue(t, "01", 0)) {
-            tree var = DECL_NAME(getchildtree(t,"00"));
-
-            // second truth expression dereferences p
-            if (TREE_CODE(getchildtree(t, "10")) == COMPONENT_REF &&
-                TREE_CODE(getchildtree(t, "100")) == INDIRECT_REF &&
-                TREE_CODE(getchildtree(t, "1000")) == PARM_DECL &&
-                DECL_NAME(getchildtree(t, "1000")) == var) {
-                printf("possible null pointer dereference\n");
-            }
-        }
-    }
+    // Check tree node..
+    check_tree_node(t);
 
     // print first expression operand
     parse_tree(TREE_OPERAND(t, 0));
