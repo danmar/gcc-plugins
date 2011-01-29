@@ -1,0 +1,21 @@
+
+Parse the AST and search for places where pointer is checked against NULL and then dereferenced.
+
+Example:
+
+test1.c:
+struct AB {
+    int a;
+    int b;
+};
+
+void f(struct AB *ab) {
+    if (ab || ab->a == 0) {    // null-pointer dereference if "ab->a == 0" is reached
+
+    }
+}
+
+Usage:
+$ xgcc -fplugin=./nullpointer1.so -c test1.c
+possible null pointer dereference
+
