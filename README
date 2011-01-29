@@ -6,3 +6,7 @@ hello
 
 myplugin1
   print AST tree
+
+nullpointer1
+  scan for null pointer dereferencing
+
