@@ -14,7 +14,8 @@ int sqr(int x) {
 }
 
 Usage:
-$ xgcc -fplugin=./myplugin1.so -c test1.cmyplugin1
+$ xgcc -fplugin=./myplugin1.so -c test1.c
+myplugin1
 myplugin1:pre_generic
 function_decl f
     statement_list
