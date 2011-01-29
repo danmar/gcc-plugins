@@ -38,12 +38,22 @@ static void print_expr(tree t, int indent)
         return;
     }
 
-    // print tree_code_name for this tree node..
-    printf("%s\n", tree_code_name[(int)code]);
-
     if (code == INTEGER_CST) {
+        if (TREE_INT_CST_HIGH(t)) {
+            printf("%s : high=0x%X low=0x%X\n", 
+                   tree_code_name[(int)code],
+                   TREE_INT_CST_HIGH(t),
+                   TREE_INT_CST_LOW(t));
+        } else {
+            printf("%s : %i\n", 
+                   tree_code_name[(int)code],
+                   TREE_INT_CST_LOW(t));
+        }
         return;
     }
+
+    // print tree_code_name for this tree node..
+    printf("%s\n", tree_code_name[(int)code]);
 
     // Statement list..
     if (code == STATEMENT_LIST) {
