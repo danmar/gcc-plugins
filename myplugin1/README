@@ -4,20 +4,35 @@ Print the internal data
 Example:
 
 test1.c:
+int f(unsigned char c) {
+    int x;
+    x = c + c;
+}
+
 int sqr(int x) {
     return x * x;
 }
 
 Usage:
-$ xgcc -fplugin=./myplugin1.so -c test1.c
-myplugin1
+$ xgcc -fplugin=./myplugin1.so -c test1.cmyplugin1
+myplugin1:pre_generic
+function_decl f
+    statement_list
+      decl_expr
+        var_decl : x
+      modify_expr
+        var_decl : x
+        plus_expr
+          nop_expr
+            parm_decl : c
+          nop_expr
+            parm_decl : c
 myplugin1:pre_generic
 function_decl sqr
     return_expr
       modify_expr
-        result_decl
+        result_decl : <unnamed>
         mult_expr
-          parm_decl
-          parm_decl
-
+          parm_decl : x
+          parm_decl : x
 
