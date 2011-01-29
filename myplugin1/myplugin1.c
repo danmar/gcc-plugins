@@ -24,7 +24,8 @@ static void print_expr(tree t, int indent)
 
     if (code == RESULT_DECL || 
         code == PARM_DECL || 
-        code == LABEL_DECL) {
+        code == LABEL_DECL || 
+        code == VAR_DECL) {
 
         // this tree node points at a DECL_NAME node
         tree id = DECL_NAME(t);
@@ -61,7 +62,9 @@ static void print_expr(tree t, int indent)
     if (operand && 
         code != RETURN_EXPR && 
         code != LABEL_EXPR &&
-        code != GOTO_EXPR)
+        code != GOTO_EXPR &&
+        code != NOP_EXPR &&
+        code != DECL_EXPR)
         print_expr(TREE_OPERAND(t, 1), indent + 2);
 }
 
