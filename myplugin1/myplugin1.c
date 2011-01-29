@@ -84,7 +84,9 @@ static void print_tree(tree t, int indent)
         code != GOTO_EXPR &&
         code != NOP_EXPR &&
         code != DECL_EXPR &&
-        code != ADDR_EXPR)
+        code != ADDR_EXPR &&
+        code != INDIRECT_REF &&
+        code != COMPONENT_REF)
         print_tree(TREE_OPERAND(t, 1), indent + 2);
 }
 
@@ -98,6 +100,7 @@ static void pre_generic(void *gcc_data, void *user_data)
 
     // Print AST
     tree decl = gcc_data;
+
     enum tree_code code = TREE_CODE(decl);
 
     if (TREE_CODE(decl) == FUNCTION_DECL) {
