@@ -1,4 +1,8 @@
 
+/**
+ * Simple gcc plugin that outputs internal data tree to stdout.
+ */
+
 #include "gcc-plugin.h"
 #include "tree.h"
 #include "cp/cp-tree.h"
@@ -7,20 +11,21 @@
 
 int plugin_is_GPL_compatible;
 
-static void print_expr(tree t, int indent)
+/**
+ * Print given tree recursively
+ */
+static void print_tree(tree t, int indent)
 {
-    int i;
-    enum tree_code code;
-
     // null => return
     if (t == 0)
         return;
 
     // indentation..
+    int i;
     for (i = 1; i <= indent; ++i)
         printf(" ");
 
-    code = TREE_CODE(t);
+    enum tree_code code = TREE_CODE(t);
 
     // Declarations..
     if (code == RESULT_DECL || 
@@ -29,10 +34,10 @@ static void print_expr(tree t, int indent)
         code == VAR_DECL ||
         code == FUNCTION_DECL) {
 
-        // this tree node points at a DECL_NAME node
+        // Get DECL_NAME for this declaration
         tree id = DECL_NAME(t);
 
-        // print info..
+        // print name of declaration..
         const char *name = id ? IDENTIFIER_POINTER(id) : "<unnamed>";
         printf("%s : %s\n", tree_code_name[(int)code], name);
 
@@ -40,7 +45,11 @@ static void print_expr(tree t, int indent)
         return;
     }
 
+    // Integer constant..
     if (code == INTEGER_CST) {
+        // value of integer constant is:
+        // (HIGH << HOST_BITS_PER_WIDE_INT) + LOW
+
         if (TREE_INT_CST_HIGH(t)) {
             printf("%s : high=0x%X low=0x%X\n", 
                    tree_code_name[(int)code],
@@ -61,26 +70,28 @@ static void print_expr(tree t, int indent)
     if (code == STATEMENT_LIST) {
         tree_stmt_iterator it;
         for (it = tsi_start(t); !tsi_end_p(it); tsi_next(&it)) {
-            print_expr(tsi_stmt(it), indent + 2);
+            print_tree(tsi_stmt(it), indent + 2);
         }
         return;
     }
 
     // print first expression operand
-    tree operand = TREE_OPERAND(t, 0);
-    print_expr(operand, indent + 2);
+    print_tree(TREE_OPERAND(t, 0), indent + 2);
 
     // print second expression operand
-    if (operand && 
-        code != RETURN_EXPR && 
+    if (code != RETURN_EXPR && 
         code != LABEL_EXPR &&
         code != GOTO_EXPR &&
         code != NOP_EXPR &&
         code != DECL_EXPR &&
         code != ADDR_EXPR)
-        print_expr(TREE_OPERAND(t, 1), indent + 2);
+        print_tree(TREE_OPERAND(t, 1), indent + 2);
 }
 
+/**
+ * Callback that is called in the finish_function. The
+ * given gcc_data is the tree for a function.
+ */
 static void pre_generic(void *gcc_data, void *user_data)
 {
     printf("myplugin1:pre_generic\n");
@@ -94,9 +105,10 @@ static void pre_generic(void *gcc_data, void *user_data)
         const char *name = id ? IDENTIFIER_POINTER(id) : "<unnamed>";
         printf("%s %s\n", tree_code_name[(int)FUNCTION_DECL], name);
 
-        tree t = DECL_SAVED_TREE(decl);
-        if (TREE_CODE(t) == BIND_EXPR) {
-            print_expr(TREE_OPERAND(t, 1), 4);
+        // Print function body..
+        tree fnbody = DECL_SAVED_TREE(decl);
+        if (TREE_CODE(fnbody) == BIND_EXPR) {
+            print_tree(TREE_OPERAND(fnbody, 1), 4);
         }
     }
 }
