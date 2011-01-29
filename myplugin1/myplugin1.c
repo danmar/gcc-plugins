@@ -78,7 +78,7 @@ static void print_expr(tree t, int indent)
         print_expr(TREE_OPERAND(t, 1), indent + 2);
 }
 
-void pre_generic(void *gcc_data, void *user_data)
+static void pre_generic(void *gcc_data, void *user_data)
 {
     printf("myplugin1:pre_generic\n");
 
