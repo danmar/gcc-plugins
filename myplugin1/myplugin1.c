@@ -2,6 +2,7 @@
 #include "gcc-plugin.h"
 #include "tree.h"
 #include "cp/cp-tree.h"
+#include "tree-iterator.h"
 #include <stdio.h>
 
 int plugin_is_GPL_compatible;
@@ -20,17 +21,47 @@ static void print_expr(tree t, int indent)
         printf(" ");
 
     code = TREE_CODE(t);
+
+    if (code == RESULT_DECL || 
+        code == PARM_DECL || 
+        code == LABEL_DECL) {
+
+        // this tree node points at a DECL_NAME node
+        tree id = DECL_NAME(t);
+
+        // print info..
+        const char *name = id ? IDENTIFIER_POINTER(id) : "<unnamed>";
+        printf("%s : %s\n", tree_code_name[(int)code], name);
+
+        // return..
+        return;
+    }
+
+    // print tree_code_name for this tree node..
     printf("%s\n", tree_code_name[(int)code]);
 
-    if (code == RESULT_DECL || code == PARM_DECL)
+    if (code == INTEGER_CST) {
         return;
+    }
+
+    // Statement list..
+    if (code == STATEMENT_LIST) {
+        tree_stmt_iterator it;
+        for (it = tsi_start(t); !tsi_end_p(it); tsi_next(&it)) {
+            print_expr(tsi_stmt(it), indent + 2);
+        }
+        return;
+    }
 
     // print first expression operand
     tree operand = TREE_OPERAND(t, 0);
     print_expr(operand, indent + 2);
 
     // print second expression operand
-    if (operand && code != RETURN_EXPR)
+    if (operand && 
+        code != RETURN_EXPR && 
+        code != LABEL_EXPR &&
+        code != GOTO_EXPR)
         print_expr(TREE_OPERAND(t, 1), indent + 2);
 }
 
