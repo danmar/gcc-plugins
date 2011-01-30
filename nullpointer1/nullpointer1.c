@@ -73,8 +73,6 @@ static void pre_generic(void *gcc_data, void *user_data)
 {
     // Print AST
     tree fndecl = gcc_data;
-    enum tree_code code = TREE_CODE(fndecl);
-
     if (TREE_CODE(fndecl) == FUNCTION_DECL) {
         // Print function body..
         tree fnbody = DECL_SAVED_TREE(fndecl);
