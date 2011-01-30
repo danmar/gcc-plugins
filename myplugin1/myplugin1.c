@@ -1,29 +1,38 @@
+/*
+ * GCC-PLUGINS - A collection of simple GCC plugins
+ * Copyright (C) 2011 Daniel Marjamäki
+ *
+ * This program is free software: you can redistribute it and/or modify
+ * it under the terms of the GNU General Public License as published by
+ * the Free Software Foundation, either version 3 of the License, or
+ * (at your option) any later version.
+ *
+ * This program is distributed in the hope that it will be useful,
+ * but WITHOUT ANY WARRANTY; without even the implied warranty of
+ * MERCHANTABILITY or FITNESS FOR A PARTICULAR PURPOSE.  See the
+ * GNU General Public License for more details.
+ *
+ * You should have received a copy of the GNU General Public License
+ * along with this program.  If not, see <http://www.gnu.org/licenses/>.
+ */
+
 
 /**
- * Simple gcc plugin that outputs internal data tree to stdout.
+ * Simple gcc plugin that outputs AST to stdout.
  */
 
 #include "gcc-plugin.h"
-#include "tree.h"
-#include "cp/cp-tree.h"
-#include "tree-iterator.h"
+#include "parse-tree.h"
 #include <stdio.h>
 
 int plugin_is_GPL_compatible;
 
-/**
- * Print given tree recursively
- */
-static void print_tree(tree t, int indent)
+static void print_tree_node(tree t, int indent)
 {
-    // null => return
-    if (t == 0)
-        return;
-
     // indentation..
     int i;
     for (i = 1; i <= indent; ++i)
-        printf(" ");
+        printf("  ");
 
     enum tree_code code = TREE_CODE(t);
 
@@ -40,13 +49,10 @@ static void print_tree(tree t, int indent)
         // print name of declaration..
         const char *name = id ? IDENTIFIER_POINTER(id) : "<unnamed>";
         printf("%s : %s\n", tree_code_name[(int)code], name);
-
-        // return..
-        return;
     }
 
     // Integer constant..
-    if (code == INTEGER_CST) {
+    else if (code == INTEGER_CST) {
         // value of integer constant is:
         // (HIGH << HOST_BITS_PER_WIDE_INT) + LOW
 
@@ -63,31 +69,10 @@ static void print_tree(tree t, int indent)
         return;
     }
 
-    // print tree_code_name for this tree node..
-    printf("%s\n", tree_code_name[(int)code]);
-
-    // Statement list..
-    if (code == STATEMENT_LIST) {
-        tree_stmt_iterator it;
-        for (it = tsi_start(t); !tsi_end_p(it); tsi_next(&it)) {
-            print_tree(tsi_stmt(it), indent + 2);
-        }
-        return;
+    else {
+        // print tree_code_name for this tree node..
+        printf("%s\n", tree_code_name[(int)code]);
     }
-
-    // print first expression operand
-    print_tree(TREE_OPERAND(t, 0), indent + 2);
-
-    // print second expression operand
-    if (code != RETURN_EXPR && 
-        code != LABEL_EXPR &&
-        code != GOTO_EXPR &&
-        code != NOP_EXPR &&
-        code != DECL_EXPR &&
-        code != ADDR_EXPR &&
-        code != INDIRECT_REF &&
-        code != COMPONENT_REF)
-        print_tree(TREE_OPERAND(t, 1), indent + 2);
 }
 
 /**
@@ -99,19 +84,20 @@ static void pre_generic(void *gcc_data, void *user_data)
     printf("myplugin1:pre_generic\n");
 
     // Print AST
-    tree decl = gcc_data;
+    tree fndecl = gcc_data;
 
-    enum tree_code code = TREE_CODE(decl);
-
-    if (TREE_CODE(decl) == FUNCTION_DECL) {
-        tree id = DECL_NAME(decl);
-        const char *name = id ? IDENTIFIER_POINTER(id) : "<unnamed>";
-        printf("%s %s\n", tree_code_name[(int)FUNCTION_DECL], name);
+    if (TREE_CODE(fndecl) == FUNCTION_DECL) {
+        tree id = DECL_NAME(fndecl);
+        const char *fnname = id ? IDENTIFIER_POINTER(id) : "<unnamed>";
+        printf("%s %s\n", tree_code_name[(int)FUNCTION_DECL], fnname);
 
         // Print function body..
-        tree fnbody = DECL_SAVED_TREE(decl);
+        tree fnbody = DECL_SAVED_TREE(fndecl);
         if (TREE_CODE(fnbody) == BIND_EXPR) {
-            print_tree(TREE_OPERAND(fnbody, 1), 4);
+            // second operand of BIND_EXPR
+            tree t = TREE_OPERAND(fnbody, 1);
+
+            parse_tree(t, print_tree_node, 1);
         }
     }
 }
