@@ -12,4 +12,5 @@ INCLUDE  = -I../include \
 myplugin1.so:	myplugin1.c	../include/parse-tree.h
 	gcc $(INCLUDE) -shared -fPIC -o myplugin1.so myplugin1.c
 
-
+test:	myplugin1.so
+	xgcc $(INCLUDE) -I ~/gcc/build/gcc/include -fplugin=./myplugin1.so -c myplugin1.c
