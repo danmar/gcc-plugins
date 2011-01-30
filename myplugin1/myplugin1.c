@@ -76,7 +76,7 @@ static void print_tree_node(tree t, int indent)
 }
 
 /**
- * Callback that is called in the finish_function. The
+ * Plugin callback that is called in the GCC finish_function. The
  * given gcc_data is the tree for a function.
  */
 static void pre_generic(void *gcc_data, void *user_data)
@@ -97,6 +97,8 @@ static void pre_generic(void *gcc_data, void *user_data)
             // second operand of BIND_EXPR
             tree t = TREE_OPERAND(fnbody, 1);
 
+            // use the utility function "parse_tree" to parse
+            // through the tree recursively  (../include/parse-tree.h)
             parse_tree(t, print_tree_node, 1);
         }
     }

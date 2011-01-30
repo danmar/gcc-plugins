@@ -24,7 +24,7 @@
 
 #include "gcc-plugin.h"
 #include "parse-tree.h"
-#include <stdio.h>
+
 
 int plugin_is_GPL_compatible;
 
@@ -79,6 +79,8 @@ static void pre_generic(void *gcc_data, void *user_data)
         // Print function body..
         tree fnbody = DECL_SAVED_TREE(fndecl);
         if (TREE_CODE(fnbody) == BIND_EXPR) {
+            // Use the utility function "parse_tree" to
+            // parse through the tree (../include/parse-tree.h).
             parse_tree(TREE_OPERAND(fnbody, 1), check_tree_node, 0);
         }
     }
