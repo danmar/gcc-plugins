@@ -12,4 +12,5 @@ INCLUDE  = -I ../include \
 nullpointer1.so:	nullpointer1.c	../include/parse-tree.h
 	gcc $(INCLUDE) -shared -fPIC -o nullpointer1.so nullpointer1.c
 
-
+test:	nullpointer1.so
+	xgcc $(INCLUDE) -fplugin=./nullpointer1.so -c test1.c
