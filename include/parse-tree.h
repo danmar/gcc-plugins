@@ -61,11 +61,7 @@ static void parse_tree(tree t, void (*callback)(tree t, int indent), int indent)
     enum tree_code code = TREE_CODE(t);
 
     // Declarations..
-    if (code == RESULT_DECL || 
-        code == PARM_DECL || 
-        code == LABEL_DECL || 
-        code == VAR_DECL ||
-        code == FUNCTION_DECL) {
+    if (DECL_P(t)) {
         return;
     }
 
