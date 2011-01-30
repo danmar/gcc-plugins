@@ -58,20 +58,13 @@ static void parse_tree(tree t, void (*callback)(tree t, int indent), int indent)
 
     (*callback)(t, indent);
 
-    enum tree_code code = TREE_CODE(t);
-
-    // Declarations..
-    if (DECL_P(t)) {
-        return;
-    }
-
-    // Integer constant..
-    if (code == INTEGER_CST) {
+    // Don't parse into declarations/exceptions/constants..
+    if (DECL_P(t) || EXCEPTIONAL_CLASS_P(t) || CONSTANT_CLASS_P(t)) {
         return;
     }
 
     // Statement list..
-    if (code == STATEMENT_LIST) {
+    if (TREE_CODE(t) == STATEMENT_LIST) {
         tree_stmt_iterator it;
         for (it = tsi_start(t); !tsi_end_p(it); tsi_next(&it)) {
             parse_tree(tsi_stmt(it), callback, indent+1);
@@ -86,6 +79,7 @@ static void parse_tree(tree t, void (*callback)(tree t, int indent), int indent)
         return;
 
     // print second expression operand
+    enum tree_code code = TREE_CODE(t);
     if (code != RETURN_EXPR && 
         code != LABEL_EXPR &&
         code != GOTO_EXPR &&
