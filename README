@@ -8,5 +8,7 @@ myplugin1
   print AST tree
 
 nullpointer1
-  scan for null pointer dereferencing
+  scan for null pointer dereferencing.
+  example:
+    if (ab || ab->a == 0)
 
