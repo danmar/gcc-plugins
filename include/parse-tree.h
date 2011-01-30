@@ -82,6 +82,9 @@ static void parse_tree(tree t, void (*callback)(tree t, int indent), int indent)
     // print first expression operand
     parse_tree(TREE_OPERAND(t, 0), callback, indent+1);
 
+    if (UNARY_CLASS_P(t))
+        return;
+
     // print second expression operand
     if (code != RETURN_EXPR && 
         code != LABEL_EXPR &&
