@@ -5,32 +5,12 @@
  */
 
 #include "gcc-plugin.h"
-#include "tree.h"
-#include "cp/cp-tree.h"
-#include "tree-iterator.h"
+#include "parse-tree.h"
 #include <stdio.h>
 
 int plugin_is_GPL_compatible;
 
-// Match tree_code for the given "tree" 
-static int is_tree_code(tree t, enum tree_code tc)
-{
-    return (t && (TREE_CODE(t) == tc)) ? 1 : 0;
-}
-
-// Is the given "tree" a PARM_DECL or VAR_DECL?
-static int is_declaration(tree t)
-{
-    return (is_tree_code(t, PARM_DECL) || is_tree_code(t, VAR_DECL)) ? 1 : 0;
-}
-
-// Is the given "tree" a INTEGER_CST with the given value?
-static int is_value(tree t, int value)
-{
-    return (is_tree_code(t, INTEGER_CST) && TREE_INT_CST_HIGH(t) == 0 && TREE_INT_CST_LOW(t) == value) ? 1 : 0;
-}
-
-static void check_tree_node(tree t)
+static void check_tree_node(tree t, int indent)
 {
     if (TREE_CODE(t) == TRUTH_ORIF_EXPR) {
         tree var = 0;
@@ -68,72 +48,20 @@ static void check_tree_node(tree t)
 
 
 /**
- * Print given tree recursively
- */
-static void parse_tree(tree t)
-{
-    // null => return
-    if (t == 0)
-        return;
-
-    enum tree_code code = TREE_CODE(t);
-
-    // Declarations..
-    if (code == RESULT_DECL || 
-        code == PARM_DECL || 
-        code == LABEL_DECL || 
-        code == VAR_DECL ||
-        code == FUNCTION_DECL) {
-        return;
-    }
-
-    // Integer constant..
-    if (code == INTEGER_CST) {
-        return;
-    }
-
-    // Statement list..
-    if (code == STATEMENT_LIST) {
-        tree_stmt_iterator it;
-        for (it = tsi_start(t); !tsi_end_p(it); tsi_next(&it)) {
-            parse_tree(tsi_stmt(it));
-        }
-        return;
-    }
-
-    // Check tree node..
-    check_tree_node(t);
-
-    // print first expression operand
-    parse_tree(TREE_OPERAND(t, 0));
-
-    // print second expression operand
-    if (code != RETURN_EXPR && 
-        code != LABEL_EXPR &&
-        code != GOTO_EXPR &&
-        code != NOP_EXPR &&
-        code != DECL_EXPR &&
-        code != ADDR_EXPR && 
-        code != INDIRECT_REF &&
-        code != COMPONENT_REF)
-        parse_tree(TREE_OPERAND(t, 1));
-}
-
-/**
  * Callback that is called in the finish_function. The
  * given gcc_data is the tree for a function.
  */
 static void pre_generic(void *gcc_data, void *user_data)
 {
     // Print AST
-    tree decl = gcc_data;
-    enum tree_code code = TREE_CODE(decl);
+    tree fndecl = gcc_data;
+    enum tree_code code = TREE_CODE(fndecl);
 
-    if (TREE_CODE(decl) == FUNCTION_DECL) {
+    if (TREE_CODE(fndecl) == FUNCTION_DECL) {
         // Print function body..
-        tree fnbody = DECL_SAVED_TREE(decl);
+        tree fnbody = DECL_SAVED_TREE(fndecl);
         if (TREE_CODE(fnbody) == BIND_EXPR) {
-            parse_tree(TREE_OPERAND(fnbody, 1));
+            parse_tree(TREE_OPERAND(fnbody, 1), check_tree_node, 0);
         }
     }
 }
