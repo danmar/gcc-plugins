@@ -58,11 +58,6 @@ static void parse_tree(tree t, void (*callback)(tree t, int indent), int indent)
 
     (*callback)(t, indent);
 
-    // Don't parse into declarations/exceptions/constants..
-    if (DECL_P(t) || EXCEPTIONAL_CLASS_P(t) || CONSTANT_CLASS_P(t)) {
-        return;
-    }
-
     // Statement list..
     if (TREE_CODE(t) == STATEMENT_LIST) {
         tree_stmt_iterator it;
@@ -72,13 +67,18 @@ static void parse_tree(tree t, void (*callback)(tree t, int indent), int indent)
         return;
     }
 
-    // print first expression operand
+    // Don't parse into declarations/exceptions/constants..
+    if (DECL_P(t) || EXCEPTIONAL_CLASS_P(t) || CONSTANT_CLASS_P(t)) {
+        return;
+    }
+
+    // parse into first operand
     parse_tree(TREE_OPERAND(t, 0), callback, indent+1);
 
     if (UNARY_CLASS_P(t))
         return;
 
-    // print second expression operand
+    // parse into second operand
     enum tree_code code = TREE_CODE(t);
     if (code != RETURN_EXPR && 
         code != LABEL_EXPR &&

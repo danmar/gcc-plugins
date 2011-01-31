@@ -9,3 +9,4 @@ void f(struct AB *ab) {
     }
 }
 
+
