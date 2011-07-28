@@ -9,7 +9,9 @@ GCC_BUILD = ~/gcc/build
 INCLUDE  = -I../include \
     -I $(GCC_SRC)/gcc \
     -I $(GCC_BUILD)/gcc \
-    -I $(GCC_SRC)/include
+    -I $(GCC_BUILD)/gmp \
+    -I $(GCC_SRC)/include \
+    -I $(GCC_SRC)/libcpp/include
 
 NAME = dump-tree-xml
 
