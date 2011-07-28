@@ -12,3 +12,8 @@ nullpointer1
   example:
     if (ab || ab->a == 0)
 
+Note:
+  A working GCC development environment is needed.
+  I use this command to configure:
+    ../configure --enable-languages=c,c++ --disable-multilib --enable-checks=all --program-suffix=-dev
+
