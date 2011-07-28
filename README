@@ -12,6 +12,9 @@ nullpointer1
   example:
     if (ab || ab->a == 0)
 
+dump-tree-xml
+  dump AST tree in xml format
+
 Note:
   A working GCC development environment is needed.
   I use this command to configure:
