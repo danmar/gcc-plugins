@@ -59,12 +59,12 @@ static void print_tree_node(tree t, int indent)
         // (HIGH << HOST_BITS_PER_WIDE_INT) + LOW
 
         if (TREE_INT_CST_HIGH(t)) {
-            printf("%s : high=0x%X low=0x%X\n", 
+            printf("%s : high=0x%lX low=0x%lX\n", 
                    tree_code_name[(int)code],
                    TREE_INT_CST_HIGH(t),
                    TREE_INT_CST_LOW(t));
         } else {
-            printf("%s : %i\n", 
+            printf("%s : %li\n", 
                    tree_code_name[(int)code],
                    TREE_INT_CST_LOW(t));
         }
